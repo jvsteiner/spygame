@@ -30,7 +30,7 @@ export default function PlayerView({ playerName, role, showRole, onToggleRole }:
         </CardHeader>
         <CardContent className="text-center">
           <Button onClick={handleReveal} className="bg-black text-white hover:bg-black/90">
-            Reveal Role
+            Reveal
           </Button>
         </CardContent>
       </Card>
