@@ -1,0 +1,24 @@
+{
+  "hosting": {
+    "public": "out",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/404{,/**}",
+        "destination": "/404.html"
+      },
+      {
+        "source": "/game{,/**}",
+        "destination": "/game.html"
+      },
+      {
+        "source": "/{,/**}",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
