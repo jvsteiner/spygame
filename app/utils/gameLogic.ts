@@ -176,13 +176,46 @@ const fantasyLocations = [
   "Sky Palace",
 ];
 
+export interface CustomList {
+  name: string;
+  locations: string[];
+}
+
+export function getCustomLists(): CustomList[] {
+  const stored = localStorage.getItem("customLists");
+  return stored ? JSON.parse(stored) : [];
+}
+
+export function saveCustomList(name: string, locations: string[]) {
+  const customLists = getCustomLists();
+  const existingIndex = customLists.findIndex((list) => list.name === name);
+
+  if (existingIndex >= 0) {
+    customLists[existingIndex] = { name, locations };
+  } else {
+    customLists.push({ name, locations });
+  }
+
+  localStorage.setItem("customLists", JSON.stringify(customLists));
+}
+
+export function deleteCustomList(name: string) {
+  const customLists = getCustomLists();
+  const filteredLists = customLists.filter((list) => list.name !== name);
+  localStorage.setItem("customLists", JSON.stringify(filteredLists));
+}
+
+export function isCustomList(name: string): boolean {
+  return getCustomLists().some((list) => list.name === name);
+}
+
 export const locationLists = {
   default: locations,
   difficult: difficultLocations,
   fantasy: fantasyLocations,
 } as const;
 
-export type LocationListKey = keyof typeof locationLists;
+export type LocationListKey = keyof typeof locationLists | string;
 
 export function shuffleArray<T>(array: T[]): T[] {
   const newArray = [...array];
@@ -193,11 +226,22 @@ export function shuffleArray<T>(array: T[]): T[] {
   return newArray;
 }
 
+export function getAllLocationLists(): Record<string, string[]> {
+  const baseList = locationLists as Record<string, string[]>;
+  const customLists = getCustomLists().reduce((acc, list) => {
+    acc[list.name] = list.locations;
+    return acc;
+  }, {} as Record<string, string[]>);
+
+  return { ...baseList, ...customLists };
+}
+
 export function generateGame(
   playerCount: number,
   listType: LocationListKey = "default"
 ): { roles: string[]; location: string; spy: number } {
-  const selectedList = locationLists[listType];
+  const allLists = getAllLocationLists();
+  const selectedList = allLists[listType] || allLists.default;
   const location = selectedList[Math.floor(Math.random() * selectedList.length)];
   const spy = Math.floor(Math.random() * playerCount);
   const roles = Array(playerCount).fill(location);
