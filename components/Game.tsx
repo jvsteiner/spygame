@@ -43,7 +43,7 @@ export default function Game({ playerNames }: { playerNames: string[] }) {
       </div>
       <div className="flex justify-center">
         <Button onClick={handleRestartGame} variant="outline" className="bg-black text-white hover:bg-black/90">
-          New Game
+          Start Again
         </Button>
       </div>
     </div>

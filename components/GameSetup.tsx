@@ -282,8 +282,12 @@ export default function GameSetup() {
         <Button onClick={handleStartGame} className="w-full text-lg py-6 bg-black text-white hover:bg-black/90">
           Start Game
         </Button>
-        <Button onClick={() => setShowCustomModal(true)} variant="outline" className="w-full text-lg py-6">
-          Add Custom
+        <Button
+          onClick={() => setShowCustomModal(true)}
+          variant="outline"
+          className="w-full text-lg py-6 bg-gray-200 drop-shadow-sm"
+        >
+          Add Custom Locations
         </Button>
       </div>
 
