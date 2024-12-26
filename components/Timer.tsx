@@ -80,22 +80,24 @@ export default function Timer({ initialTime }: TimerProps) {
       } transition-colors duration-300`}
     >
       <div className="flex items-center space-x-4">
-        <Button onClick={decrementTime} className="text-4xl p-2 h-16 w-16" variant="outline">
+        <Button onClick={decrementTime} className="text-4xl p-2 h-16 w-16 bg-gray-100" variant="outline">
           <ChevronDown size={32} />
         </Button>
         <div className="text-4xl font-bold w-32 text-center">{formatTime(time)}</div>
-        <Button onClick={incrementTime} className="text-4xl p-2 h-16 w-16" variant="outline">
+        <Button onClick={incrementTime} className="text-4xl p-2 h-16 w-16 bg-gray-100" variant="outline">
           <ChevronUp size={32} />
         </Button>
       </div>
       <div className="flex space-x-2">
-        <Button onClick={handleStart} disabled={isRunning}>
+        <Button onClick={handleStart} disabled={isRunning} className="bg-gray-100">
           Start
         </Button>
-        <Button onClick={handleStop} disabled={!isRunning}>
+        <Button onClick={handleStop} disabled={!isRunning} className="bg-gray-100">
           Stop
         </Button>
-        <Button onClick={handleReset}>Reset</Button>
+        <Button onClick={handleReset} className="bg-gray-100">
+          Reset
+        </Button>
       </div>
     </div>
   );

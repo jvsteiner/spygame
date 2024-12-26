@@ -221,7 +221,7 @@ export default function GameSetup() {
         <div className="flex items-center space-x-4">
           <Button
             onClick={() => handlePlayerCountChange(playerCount - 1)}
-            className="text-2xl p-2 h-12 w-12"
+            className="text-2xl p-2 h-12 w-12 bg-white"
             variant="outline"
             aria-label="Decrease player count"
           >
@@ -230,7 +230,7 @@ export default function GameSetup() {
           <div className="text-3xl font-bold w-16 text-center">{playerCount}</div>
           <Button
             onClick={() => handlePlayerCountChange(playerCount + 1)}
-            className="text-2xl p-2 h-12 w-12"
+            className="text-2xl p-2 h-12 w-12 bg-white"
             variant="outline"
             aria-label="Increase player count"
           >
