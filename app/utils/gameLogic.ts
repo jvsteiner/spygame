@@ -186,10 +186,26 @@ export function getCustomLists(): CustomList[] {
   return stored ? JSON.parse(stored) : [];
 }
 
-export function saveCustomList(name: string, locations: string[]) {
+export function saveCustomList(name: string, locations: string[], oldName?: string) {
   const customLists = getCustomLists();
-  const existingIndex = customLists.findIndex((list) => list.name === name);
 
+  // If we're editing and the name changed, remove the old list
+  if (oldName && oldName !== name) {
+    const filteredLists = customLists.filter((list) => list.name !== oldName);
+    const existingIndex = filteredLists.findIndex((list) => list.name === name);
+
+    if (existingIndex >= 0) {
+      filteredLists[existingIndex] = { name, locations };
+    } else {
+      filteredLists.push({ name, locations });
+    }
+
+    localStorage.setItem("customLists", JSON.stringify(filteredLists));
+    return;
+  }
+
+  // Normal save/update operation
+  const existingIndex = customLists.findIndex((list) => list.name === name);
   if (existingIndex >= 0) {
     customLists[existingIndex] = { name, locations };
   } else {

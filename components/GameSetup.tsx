@@ -205,7 +205,7 @@ export default function GameSetup() {
   };
 
   const handleSaveCustomList = (name: string, locations: string[]) => {
-    saveCustomList(name, locations);
+    saveCustomList(name, locations, editingList?.name);
     setAvailableLists(getAllLocationLists());
     setSelectedList(name);
     setUseExtended(true);
