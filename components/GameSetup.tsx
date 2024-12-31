@@ -42,13 +42,13 @@ const Switch = ({
 
 interface CustomListModalProps {
   onClose: () => void;
-  onSave: (name: string, locations: string[]) => void;
-  editingList?: { name: string; locations: string[] };
+  onSave: (name: string, locations: Record<string, string[]>) => void;
+  editingList?: { name: string; locations: Record<string, string[]> };
 }
 
 function CustomListModal({ onClose, onSave, editingList }: CustomListModalProps) {
   const [name, setName] = useState(editingList?.name || "");
-  const [locationText, setLocationText] = useState(editingList?.locations.join("\n") || "");
+  const [locationText, setLocationText] = useState(editingList ? Object.keys(editingList.locations).join("\n") : "");
   const [error, setError] = useState("");
 
   const handleSave = () => {
@@ -57,15 +57,20 @@ function CustomListModal({ onClose, onSave, editingList }: CustomListModalProps)
       return;
     }
 
-    const locations = locationText
+    const locationNames = locationText
       .split("\n")
       .map((loc) => loc.trim())
       .filter((loc) => loc.length > 0);
 
-    if (locations.length < 3) {
+    if (locationNames.length < 3) {
       setError("Please enter at least 3 locations");
       return;
     }
+
+    const locations = locationNames.reduce((acc, loc) => {
+      acc[loc] = [];
+      return acc;
+    }, {} as Record<string, string[]>);
 
     onSave(name, locations);
     onClose();
@@ -116,9 +121,9 @@ export default function GameSetup() {
   const [useExtended, setUseExtended] = useState(false);
   const [selectedList, setSelectedList] = useState<LocationListKey>("default");
   const [showCustomModal, setShowCustomModal] = useState(false);
-  const [availableLists, setAvailableLists] = useState<Record<string, string[]>>({});
+  const [availableLists, setAvailableLists] = useState<Record<string, Record<string, string[]>>>({});
   const router = useRouter();
-  const [editingList, setEditingList] = useState<{ name: string; locations: string[] } | null>(null);
+  const [editingList, setEditingList] = useState<{ name: string; locations: Record<string, string[]> } | null>(null);
 
   useEffect(() => {
     const storedCount = localStorage.getItem("playerCount");
@@ -238,7 +243,7 @@ export default function GameSetup() {
     }
   };
 
-  const handleSaveCustomList = (name: string, locations: string[]) => {
+  const handleSaveCustomList = (name: string, locations: Record<string, string[]>) => {
     saveCustomList(name, locations, editingList?.name);
     setAvailableLists(getAllLocationLists());
     setSelectedList(name);
