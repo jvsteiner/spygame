@@ -9,6 +9,9 @@ import { useRouter } from "next/navigation";
 
 export default function Game({ playerNames }: { playerNames: string[] }) {
   const [gameState, setGameState] = useState(() => {
+    if (playerNames.length < 3) {
+      throw new Error("Cannot start game with fewer than 3 players");
+    }
     const selectedList = (localStorage.getItem("selectedList") as LocationListKey) || "default";
     return generateGame(playerNames.length, selectedList);
   });

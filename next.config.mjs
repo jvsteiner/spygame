@@ -12,7 +12,7 @@ const nextConfig = {
 };
 
 export default withPWA({
-  dest: "public",
+  dest: "out",
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",

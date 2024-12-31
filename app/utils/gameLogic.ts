@@ -256,6 +256,10 @@ export function generateGame(
   playerCount: number,
   listType: LocationListKey = "default"
 ): { roles: string[]; location: string; spy: number } {
+  if (playerCount < 3) {
+    throw new Error("Cannot start game with fewer than 3 players");
+  }
+
   const allLists = getAllLocationLists();
   const selectedList = allLists[listType] || allLists.default;
   const location = selectedList[Math.floor(Math.random() * selectedList.length)];

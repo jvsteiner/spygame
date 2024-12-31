@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronUp, ChevronDown, Pause, Play } from "lucide-react";
 import {
   LocationListKey,
   locationLists,
@@ -112,6 +112,7 @@ function CustomListModal({ onClose, onSave, editingList }: CustomListModalProps)
 export default function GameSetup() {
   const [playerCount, setPlayerCount] = useState(3);
   const [playerNames, setPlayerNames] = useState<string[]>([]);
+  const [activePlayers, setActivePlayers] = useState<boolean[]>([]);
   const [useExtended, setUseExtended] = useState(false);
   const [selectedList, setSelectedList] = useState<LocationListKey>("default");
   const [showCustomModal, setShowCustomModal] = useState(false);
@@ -121,21 +122,23 @@ export default function GameSetup() {
 
   useEffect(() => {
     const storedCount = localStorage.getItem("playerCount");
-    const storedNames = localStorage.getItem("playerNames");
+    const storedNames = localStorage.getItem("allPlayerNames");
+    const storedActive = localStorage.getItem("activePlayers");
     const storedUseExtended = localStorage.getItem("useExtended");
     const storedSelectedList = localStorage.getItem("selectedList") as LocationListKey | null;
 
     const count = storedCount ? parseInt(storedCount) : 3;
     const names = storedNames ? JSON.parse(storedNames) : Array.from({ length: count }, (_, i) => `Player ${i + 1}`);
+    const active = storedActive ? JSON.parse(storedActive) : Array(count).fill(true);
 
     setPlayerCount(count);
     setPlayerNames(names);
+    setActivePlayers(active);
     setUseExtended(storedUseExtended === "true");
     if (storedSelectedList) {
       setSelectedList(storedSelectedList);
     }
 
-    // Load available lists
     setAvailableLists(getAllLocationLists());
   }, []);
 
@@ -153,8 +156,21 @@ export default function GameSetup() {
       } else {
         newNames.splice(count);
       }
-      localStorage.setItem("playerNames", JSON.stringify(newNames));
+      localStorage.setItem("allPlayerNames", JSON.stringify(newNames));
       return newNames;
+    });
+
+    setActivePlayers((prevActive) => {
+      const newActive = [...prevActive];
+      if (count > prevActive.length) {
+        for (let i = prevActive.length; i < count; i++) {
+          newActive.push(true);
+        }
+      } else {
+        newActive.splice(count);
+      }
+      localStorage.setItem("activePlayers", JSON.stringify(newActive));
+      return newActive;
     });
   };
 
@@ -162,13 +178,31 @@ export default function GameSetup() {
     setPlayerNames((prevNames) => {
       const newNames = [...prevNames];
       newNames[index] = name;
-      localStorage.setItem("playerNames", JSON.stringify(newNames));
+      localStorage.setItem("allPlayerNames", JSON.stringify(newNames));
       return newNames;
     });
   };
 
+  const handleTogglePlayer = (index: number) => {
+    const activeCount = activePlayers.filter((active) => active).length;
+    if (activeCount <= 3 && activePlayers[index]) {
+      return; // Prevent toggling off if it would result in fewer than 3 active players
+    }
+
+    setActivePlayers((prevActive) => {
+      const newActive = [...prevActive];
+      newActive[index] = !newActive[index];
+      localStorage.setItem("activePlayers", JSON.stringify(newActive));
+      return newActive;
+    });
+  };
+
   const handleStartGame = () => {
-    localStorage.setItem("playerNames", JSON.stringify(playerNames));
+    // Store both the complete list and active players list
+    localStorage.setItem("allPlayerNames", JSON.stringify(playerNames));
+    // Only pass active players to the game
+    const filteredNames = playerNames.filter((_, index) => activePlayers[index]);
+    localStorage.setItem("playerNames", JSON.stringify(filteredNames));
     localStorage.setItem("useExtended", useExtended.toString());
     localStorage.setItem("selectedList", selectedList);
     router.push("/game");
@@ -240,14 +274,27 @@ export default function GameSetup() {
       </div>
       <div className="space-y-2">
         {playerNames.map((name, index) => (
-          <Input
-            key={index}
-            value={name}
-            onChange={(e) => handleNameChange(index, e.target.value)}
-            onFocus={handleInputFocus}
-            placeholder={`Player ${index + 1}`}
-            className="text-lg bg-white"
-          />
+          <div key={index} className="flex items-center space-x-2">
+            <Button
+              onClick={() => handleTogglePlayer(index)}
+              variant="outline"
+              className={`p-2 h-9 w-9 flex-shrink-0 ${
+                activePlayers[index] ? "bg-black text-white hover:bg-black/90" : "bg-gray-200 hover:bg-gray-300"
+              }`}
+              title={activePlayers[index] ? "Active (click to pause)" : "Paused (click to activate)"}
+              disabled={activePlayers[index] && activePlayers.filter((active) => active).length <= 3}
+            >
+              {activePlayers[index] ? <Play size={16} /> : <Pause size={16} />}
+            </Button>
+            <Input
+              value={name}
+              onChange={(e) => handleNameChange(index, e.target.value)}
+              onFocus={handleInputFocus}
+              placeholder={`Player ${index + 1}`}
+              className={`text-lg bg-white ${!activePlayers[index] && "opacity-50"}`}
+              disabled={!activePlayers[index]}
+            />
+          </div>
         ))}
       </div>
       <div className="flex flex-col space-y-4 items-center">
@@ -279,8 +326,12 @@ export default function GameSetup() {
         )}
       </div>
       <div className="space-y-2">
-        <Button onClick={handleStartGame} className="w-full text-lg py-6 bg-black text-white hover:bg-black/90">
-          Start Game
+        <Button
+          onClick={handleStartGame}
+          className="w-full text-lg py-6 bg-black text-white hover:bg-black/90"
+          disabled={activePlayers.filter((active) => active).length < 3}
+        >
+          Start Game ({activePlayers.filter((active) => active).length} Players)
         </Button>
         <Button
           onClick={() => setShowCustomModal(true)}
