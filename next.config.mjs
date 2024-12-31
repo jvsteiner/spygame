@@ -18,4 +18,17 @@ export default withPWA({
   disable: process.env.NODE_ENV === "development",
   publicExcludes: ["!icons/*"],
   buildExcludes: [/chunks\/.*$/],
+  runtimeCaching: [
+    {
+      urlPattern: /^https?.*/,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "offline-cache",
+        expiration: {
+          maxEntries: 200,
+          maxAgeSeconds: 1 * 60 * 60, // 1 hours
+        },
+      },
+    },
+  ],
 })(nextConfig);
