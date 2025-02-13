@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
@@ -13,25 +13,71 @@ export default function Timer({ initialTime }: TimerProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [isFlashing, setIsFlashing] = useState(false);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Create audio element for beeping
+    audioRef.current = new Audio("/beep.mp3");
+    audioRef.current.loop = true;
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
+    const requestWakeLock = async () => {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLockRef.current = await navigator.wakeLock.request("screen");
+        }
+      } catch (err) {
+        console.log("Wake Lock error:", err);
+      }
+    };
+
+    const releaseWakeLock = async () => {
+      if (wakeLockRef.current) {
+        try {
+          await wakeLockRef.current.release();
+          wakeLockRef.current = null;
+        } catch (err) {
+          console.log("Wake Lock release error:", err);
+        }
+      }
+    };
+
     if (isRunning && time > 0) {
+      requestWakeLock();
       interval = setInterval(() => {
         setTime((prevTime) => {
           if (prevTime <= 1) {
             setIsRunning(false);
             setIsTimeUp(true);
             setIsFlashing(true);
+            releaseWakeLock();
+            if (audioRef.current) {
+              audioRef.current.play().catch(console.error);
+            }
             return 0;
           }
           return prevTime - 1;
         });
       }, 1000);
+    } else if (!isRunning) {
+      releaseWakeLock();
     }
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      releaseWakeLock();
+    };
   }, [isRunning, time]);
 
   useEffect(() => {
@@ -45,26 +91,44 @@ export default function Timer({ initialTime }: TimerProps) {
   }, [isFlashing]);
 
   const handleStart = () => setIsRunning(true);
+
   const handleStop = () => {
     setIsRunning(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
   };
+
   const handleReset = () => {
     setIsRunning(false);
     setIsTimeUp(false);
     setIsFlashing(false);
     setTime(initialTime);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
   };
 
   const incrementTime = () => {
     setTime((prevTime) => prevTime + 30);
     setIsTimeUp(false);
     setIsFlashing(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
   };
 
   const decrementTime = () => {
     setTime((prevTime) => Math.max(0, prevTime - 30));
     setIsTimeUp(false);
     setIsFlashing(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
   };
 
   const formatTime = (seconds: number) => {

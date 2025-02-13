@@ -19,14 +19,51 @@ export default withPWA({
   publicExcludes: ["!icons/*"],
   buildExcludes: [/chunks\/.*$/],
   runtimeCaching: [
+    // HTML pages - NetworkFirst because we want fresh content when online
     {
-      urlPattern: /^https?.*/,
+      urlPattern: /\.html$/,
       handler: "NetworkFirst",
       options: {
-        cacheName: "offline-cache",
+        cacheName: "pages",
         expiration: {
-          maxEntries: 200,
-          maxAgeSeconds: 1 * 60 * 60, // 1 hours
+          maxEntries: 50,
+          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+        },
+      },
+    },
+    // Static assets (JS, CSS) - CacheFirst because these rarely change
+    {
+      urlPattern: /\.(js|css)$/i,
+      handler: "CacheFirst",
+      options: {
+        cacheName: "static-assets",
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+        },
+      },
+    },
+    // Images and icons - CacheFirst with longer expiration
+    {
+      urlPattern: /\.(png|jpg|jpeg|svg|gif|ico)$/i,
+      handler: "CacheFirst",
+      options: {
+        cacheName: "images",
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+        },
+      },
+    },
+    // Game data (localStorage is primary, this is backup)
+    {
+      urlPattern: /\/api\/.*|\/game/,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "game-data",
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 24 * 60 * 60, // 24 hours
         },
       },
     },
